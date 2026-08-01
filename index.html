@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PindaiGizi - Pahami Gizimu</title>
+    <meta name="title" content="PindaiGizi - Pindai Makananmu, Pahami Gizimu">
+    <meta name="description" content="Aplikasi pencarian dan pemindai barcode gizi makanan Indonesia berbasis Open Data. Cek Nutri-Score, kalori, gula, dan informasi nutrisi dengan mudah.">
+
+    <!-- Open Graph / Facebook / WhatsApp Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pindaigizi.rezweb.my.id/">
+    <meta property="og:title" content="PindaiGizi - Pindai Makananmu, Pahami Gizimu">
+    <meta property="og:description" content="Aplikasi pencarian dan pemindai barcode gizi makanan Indonesia berbasis Open Data. Cek Nutri-Score, kalori, gula, dan informasi nutrisi dengan mudah.">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
+    <link rel="icon" type="image/icon" sizes="32x32" href="icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+    <link rel="manifest" href="icon/site.webmanifest">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              terracotta: "#D95D39",
+              "terracotta-dark": "#b84a2b",
+              "bg-warm": "#FCFBF9",
+              charcoal: "#2B2320",
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Lucide Icons & Scanner Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
+  </head>
+  <body
+    class="bg-bg-warm text-charcoal font-sans antialiased min-h-screen flex flex-col md:flex-row"
+  >
+    <!-- Sidebar (Desktop) / Topbar (Mobile) -->
+    <aside class="w-full md:w-64 bg-[#F4ECE8] p-4 md:p-6 flex flex-col md:min-h-screen shadow-sm z-10">
+      
+      <!-- Wrapper Logo & Tombol Hamburger -->
+      <div class="flex items-center justify-between md:block">
+        <div class="flex items-center gap-2 md:mb-8 text-terracotta">
+          <i data-lucide="scan-line" class="w-8 h-8"></i>
+          <div>
+            <h2 class="text-2xl font-bold leading-none">PindaiGizi</h2>
+            <p class="text-xs text-gray-500 mt-1 hidden md:block">
+              Pindai Makanan, Pahami Gizi.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Tombol Hamburger (Hanya Tampil di Mobile) -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-charcoal hover:bg-gray-200 rounded-lg transition">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Menu Navigasi (Bisa di-toggle di Mobile) -->
+      <nav id="sidebar-nav" class="hidden md:flex flex-col gap-2 mt-4 md:mt-0">
+        <a href="#" class="flex items-center gap-3 px-4 py-3 bg-[#EADCD6] text-charcoal font-bold rounded-xl transition">
+          <i data-lucide="home" class="w-5 h-5"></i> Beranda
+        </a>
+        <button id="btn-open-info" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-[#EADCD6]/50 rounded-xl transition w-full text-left">
+          <i data-lucide="info" class="w-5 h-5"></i> Sumber Data
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Konten Utama -->
+    <main class="flex-1 p-4 md:p-8 w-full max-w-5xl mx-auto">
+      <!-- Header / Panduan Singkat -->
+      <section class="mb-8 text-center md:text-left">
+        <h1 class="text-3xl font-bold mb-2">Cari Informasi Gizi Produk</h1>
+        <p class="text-gray-600">
+          Gunakan pencarian teks, ketik kode barcode, atau gunakan kamera.
+        </p>
+      </section>
+
+      <!-- Area Pencarian (Tonal Box) -->
+      <section
+        class="bg-[#F5EFEB] p-6 md:p-8 rounded-3xl shadow-sm text-center"
+      >
+        <!-- Toggle Pencarian -->
+        <div
+          class="flex justify-center space-x-1 bg-gray-200/50 p-1 rounded-xl w-fit mx-auto mb-6"
+        >
+          <button
+            id="tab-name"
+            class="px-5 py-2.5 bg-white shadow-sm rounded-lg text-sm font-bold text-terracotta transition flex items-center gap-2"
+          >
+            <i data-lucide="search" class="w-4 h-4"></i> Nama Produk
+          </button>
+          <button
+            id="tab-barcode"
+            class="px-5 py-2.5 text-gray-500 hover:text-charcoal rounded-lg text-sm font-medium transition flex items-center gap-2"
+          >
+            <i data-lucide="barcode" class="w-4 h-4"></i> Kode Barcode
+          </button>
+        </div>
+
+        <!-- Input Field -->
+        <div class="relative max-w-2xl mx-auto">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"
+          >
+            <i data-lucide="search" id="input-icon" class="w-5 h-5"></i>
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            class="w-full pl-12 pr-4 py-4 rounded-full border-none shadow-sm focus:ring-2 focus:ring-terracotta outline-none text-lg transition"
+            placeholder="Ketik nama produk, merek, atau kategori..."
+          />
+        </div>
+
+        <div class="flex items-center justify-center gap-4 my-6 opacity-60">
+          <div class="h-px bg-gray-400 w-16"></div>
+          <span class="text-sm font-bold tracking-widest text-gray-500"
+            >ATAU</span
+          >
+          <div class="h-px bg-gray-400 w-16"></div>
+        </div>
+
+        <!-- Tombol Scanner -->
+        <button
+          id="btn-open-scanner"
+          class="inline-flex items-center gap-2 bg-terracotta hover:bg-terracotta-dark text-white px-8 py-4 rounded-full font-bold shadow-lg transition transform hover:-translate-y-0.5"
+        >
+          <i data-lucide="camera" class="w-5 h-5"></i> Pindai Barcode via Kamera
+        </button>
+      </section>
+
+      <!-- Area Hasil Pencarian -->
+      <section class="mt-10">
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <i data-lucide="layout-grid" class="w-5 h-5 text-terracotta"></i>
+          Hasil Pencarian
+        </h3>
+        <div
+          id="results-container"
+          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+        >
+          <!-- Hasil di-render via JS -->
+        </div>
+      </section>
+      <footer class="mt-16 pt-6 pb-6 border-t border-gray-200 text-center text-xs text-gray-400 space-y-1">
+        <p>
+            Dibuat oleh <a href="https://irezabdullah.my.id" target="_blank" rel="noopener noreferrer" class="text-terracotta font-medium hover:underline">Irez Abdullah</a>
+        </p>
+        <p>
+            Data bersumber dari <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-600">Open Food Facts</a>.
+        </p>
+        <p class="text-[11px] text-gray-400/80">
+            PindaiGizi tidak bertanggung jawab atas kekeliruan data. Selalu jadikan kemasan fisik produk sebagai acuan utama.
+        </p>
+    </footer>
+    </main>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. Modal Scanner Kamera -->
+    <div
+      id="scanner-modal"
+      class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div class="relative w-full max-w-md text-center">
+        <button
+          id="btn-close-scanner"
+          class="absolute -top-12 right-0 text-white hover:text-terracotta transition"
+        >
+          <i data-lucide="x-circle" class="w-10 h-10"></i>
+        </button>
+        <div
+          id="reader"
+          class="rounded-2xl overflow-hidden shadow-2xl border-4 border-terracotta"
+        ></div>
+        <p
+          class="text-white mt-6 font-medium flex items-center justify-center gap-2"
+        >
+          <i data-lucide="focus" class="w-5 h-5"></i> Arahkan barcode tepat ke
+          dalam kotak
+        </p>
+      </div>
+    </div>
+
+    <!-- 2. Modal Detail Produk -->
+    <div
+      id="detail-modal"
+      class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-3xl w-full max-w-lg p-6 md:p-8 relative overflow-hidden flex flex-col shadow-2xl transform transition-all"
+      >
+        <button
+          id="close-detail"
+          class="absolute top-4 right-4 text-gray-400 hover:text-red-500 bg-gray-100 rounded-full p-2 transition"
+        >
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <div
+          id="detail-content"
+          class="overflow-y-auto max-h-[80vh] custom-scrollbar"
+        >
+          <!-- Konten detail dari API v3 dimasukkan ke sini -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL DISCLAIMER & SUMBER DATA ================= -->
+<div id="info-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl w-full max-w-lg p-6 md:p-8 relative overflow-hidden shadow-2xl">
+    <button id="btn-close-info" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 bg-gray-100 rounded-full p-2 transition">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 bg-terracotta/10 text-terracotta rounded-full flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="database" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-charcoal">Sumber & Ketentuan Data</h3>
+    </div>
+
+    <div class="space-y-4 text-sm text-gray-600 max-h-[60vh] overflow-y-auto pr-1">
+      
+      <div class="bg-[#F5EFEB] p-4 rounded-2xl border border-gray-200">
+        <h4 class="font-bold text-charcoal flex items-center gap-2 mb-1">
+          <i data-lucide="globe" class="w-4 h-4 text-terracotta"></i> Dari Mana Data Ini Berasal?
+        </h4>
+        <p class="text-xs leading-relaxed">
+          Seluruh data produk, gambar, dan nilai gizi disajikan secara otomatis dari basis data terbuka publik 
+          <a href="https://world.openfoodfacts.org" target="_blank" class="text-terracotta font-bold underline">Open Food Facts</a> 
+          di bawah lisensi <i>Open Database License (ODbL)</i>.
+        </p>
+      </div>
+
+      <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900">
+        <h4 class="font-bold flex items-center gap-2 mb-1">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i> Batasan Penyangkalan (Disclaimer)
+        </h4>
+        <ul class="list-disc list-inside text-xs space-y-1.5 leading-relaxed text-amber-800">
+            <li>
+            <b>PindaiGizi hanya menampilkan data</b> yang bersumber langsung dari basis data publik pihak ketiga (Open Food Facts) secara <i>real-time</i>.
+            </li>
+            <li>
+            Data diisi oleh kontributor independen secara terbuka, sehingga <b>sangat memungkinkan terjadinya kesalahan ketik, ketidaksesuaian nilai gizi, atau data yang belum diperbarui</b>.
+            </li>
+            <li>
+            PindaiGizi tidak melakukan verifikasi independen atas kebenaran data dan <b>tidak bertanggung jawab atas segala kekeliruan informasi</b> yang ditampilkan.
+            </li>
+            <li>
+            Informasi fisik pada **kemasan produk asli adalah satu-satunya acuan resmi yang valid**. Selalu cek label kemasan sebelum mengonsumsi.
+            </li>
+        </ul>
+        </div>
+    </div>
+
+    <div class="mt-6 text-center">
+      <button id="btn-understand" class="w-full bg-terracotta hover:bg-terracotta-dark text-white font-bold py-3 rounded-full transition">
+        Saya Mengerti
+      </button>
+    </div>
+  </div>
+</div>
+
+    <script src="app.js"></script>
+    <script>
+      // ================= LOGIKA MOBILE MENU (HAMBURGER) =================
+      const mobileBtn = document.getElementById("mobile-menu-btn");
+      const sidebarNav = document.getElementById("sidebar-nav");
+
+      mobileBtn.addEventListener("click", () => {
+        // Toggle class 'hidden' pada mobile
+        sidebarNav.classList.toggle("hidden");
+        sidebarNav.classList.toggle("flex");
+      });
+
+      // ================= LOGIKA MODAL INFORMASI & DISCLAIMER =================
+      const infoModal = document.getElementById("info-modal");
+      const openInfoBtn = document.getElementById("btn-open-info");
+      const closeInfoBtn = document.getElementById("btn-close-info");
+      const understandBtn = document.getElementById("btn-understand");
+
+      // Fungsi Buka Modal
+      const openModal = () => {
+        infoModal.classList.remove("hidden");
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      };
+
+      // Fungsi Tutup Modal
+      const closeModal = () => {
+        infoModal.classList.add("hidden");
+      };
+
+      // 1. Munculkan Otomatis Jika User Belum Pernah Klik "Mengerti" (Lapis Pengaman 1)
+      window.addEventListener("DOMContentLoaded", () => {
+        openModal();
+      });
+
+      // 2. Tombol di Sidebar
+      if (openInfoBtn) {
+        openInfoBtn.addEventListener("click", openModal);
+      }
+
+      // 3. Tombol (X) di pojok
+      if (closeInfoBtn) {
+        closeInfoBtn.addEventListener("click", closeModal);
+      }
+
+      // 4. Tombol "Saya Mengerti" -> Simpan ke LocalStorage agar tidak muncul terus-menerus
+      if (understandBtn) {
+        understandBtn.addEventListener("click", () => {
+          closeModal();
+        });
+      }
+    </script>
+  </body>
+</html>
